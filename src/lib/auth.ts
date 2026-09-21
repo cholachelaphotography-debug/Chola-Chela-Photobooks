@@ -10,7 +10,9 @@ const loginSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Required on Vercel so preview + production hosts both work
   trustHost: true,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       name: "credentials",
@@ -30,6 +32,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user) return null;
 
+        // Soft-block inactive technicians/users if column exists
+        if ("active" in user && user.active === false) return null;
+
         const valid = await compare(password, user.passwordHash);
         if (!valid) return null;
 
@@ -47,6 +52,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -59,7 +65,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string | undefined;
+        (session.user as { role?: string }).role = token.role as
+          | string
+          | undefined;
       }
       return session;
     },
