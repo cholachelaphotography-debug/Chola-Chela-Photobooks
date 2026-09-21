@@ -230,7 +230,7 @@ export default function EditorClient({
       const photo = getPhoto(slot.photoId);
       return (
         <div
-          className={`relative rounded overflow-hidden border ${isAdjusting ? "cursor-move ring-2 ring-orange-500" : ""}  border-stone-200 bg-stone-100 ${className}`}
+          className={`relative rounded overflow-hidden border border-stone-200 bg-stone-100 ${className}`}
         >
           {photo ? (
             <img
@@ -332,7 +332,7 @@ export default function EditorClient({
           onDragEnd={() => setDragSource(null)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDropOnSlot(index)}
-          className={`relative rounded overflow-hidden border ${isAdjusting ? "cursor-move ring-2 ring-orange-500" : ""} -2 bg-stone-100 flex items-center justify-center group transition ${
+          className={`relative rounded overflow-hidden border-2 bg-stone-100 flex items-center justify-center group transition ${isAdjusting ? "cursor-move ring-2 ring-orange-500 border-orange-400" : "border-stone-200"} ${
             dragSource && !isAdjusting
               ? "border-orange-400 bg-orange-50/50 border-dashed"
               : isAdjusting
