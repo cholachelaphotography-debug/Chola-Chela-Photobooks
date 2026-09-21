@@ -71,7 +71,7 @@ export default function DashboardClient({ userName }: { userName: string }) {
           const data = await ordersRes.json();
           setOrders(data);
         }
-      } catch {
+      } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
