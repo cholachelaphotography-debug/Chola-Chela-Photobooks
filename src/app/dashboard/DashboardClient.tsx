@@ -120,7 +120,23 @@ export default function DashboardClient({ userName }: { userName: string }) {
   }
 
   // Create project
-  async function handleCreate() {
+  
+  async function handleDeleteProject(projectId: string, title: string) {
+    if (!confirm(`Delete photo book "${title}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Could not delete");
+        return;
+      }
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    } catch {
+      alert("Could not delete photo book");
+    }
+  }
+
+async function handleCreate() {
     setCreating(true);
     setError("");
 
@@ -259,12 +275,21 @@ export default function DashboardClient({ userName }: { userName: string }) {
                             Updated {new Date(p.updatedAt).toLocaleDateString()}
                           </p>
                         </div>
-                        <button
-                          onClick={() => router.push(`/dashboard/projects/${p.id}`)}
-                          className="px-3 py-1.5 text-sm rounded-lg bg-orange-700 text-white hover:bg-orange-800"
-                        >
-                          Open
-                        </button>
+                        <div className="flex flex-col gap-2 shrink-0">
+                          <button
+                            onClick={() => router.push(`/dashboard/projects/${p.id}`)}
+                            className="px-3 py-1.5 text-sm rounded-lg bg-orange-700 text-white hover:bg-orange-800"
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProject(p.id, p.title)}
+                            className="px-3 py-1.5 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

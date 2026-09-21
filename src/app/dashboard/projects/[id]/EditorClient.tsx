@@ -183,6 +183,8 @@ export default function EditorClient({
 
   // Pan handlers for adjust mode
   function onPanStart(e: React.MouseEvent | React.TouchEvent, slotIndex: number) {
+    e.preventDefault();
+    e.stopPropagation();
     const slot = normalizeSlot(page.slots[slotIndex]);
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
@@ -191,17 +193,108 @@ export default function EditorClient({
 
   function onPanMove(e: React.MouseEvent | React.TouchEvent, slotIndex: number) {
     if (!panStart.current) return;
+    e.preventDefault();
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-    const dx = (clientX - panStart.current.x) / 3;
-    const dy = (clientY - panStart.current.y) / 3;
-    const newX = Math.max(-50, Math.min(50, panStart.current.slotX + dx));
-    const newY = Math.max(-50, Math.min(50, panStart.current.slotY + dy));
+    // More responsive drag
+    const dx = (clientX - panStart.current.x) / 2;
+    const dy = (clientY - panStart.current.y) / 2;
+    const newX = Math.max(-80, Math.min(80, panStart.current.slotX + dx));
+    const newY = Math.max(-80, Math.min(80, panStart.current.slotY + dy));
     updateSlot(slotIndex, { x: newX, y: newY });
   }
 
   function onPanEnd() {
     panStart.current = null;
+  }
+
+  function renderPageAt(pageIndex: number) {
+    const pg = pages[pageIndex];
+    if (!pg) {
+      return (
+        <div className="w-full h-full flex items-center justify-center text-stone-300 text-xs">
+          Empty page
+        </div>
+      );
+    }
+    const slots = pg.slots || [];
+    const layout = template.layout;
+    const SlotLocal = ({
+      index,
+      className = "",
+    }: {
+      index: number;
+      className?: string;
+    }) => {
+      const slot = normalizeSlot(slots[index]);
+      const photo = getPhoto(slot.photoId);
+      return (
+        <div
+          className={`relative rounded overflow-hidden border ${isAdjusting ? "cursor-move ring-2 ring-orange-500" : ""}  border-stone-200 bg-stone-100 ${className}`}
+        >
+          {photo ? (
+            <img
+              src={photo.url}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{
+                transform: `scale(${slot.scale}) translate(${slot.x}%, ${slot.y}%)`,
+                transformOrigin: "center center",
+              }}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-stone-300 text-[10px]">
+              Empty
+            </div>
+          )}
+        </div>
+      );
+    };
+    switch (layout) {
+      case "single":
+        return (
+          <div className="w-full h-full p-2">
+            <SlotLocal index={0} className="w-full h-full" />
+          </div>
+        );
+      case "hero-plus-two":
+      case "wedding":
+        return (
+          <div className="w-full h-full p-1.5 grid grid-rows-3 gap-1.5">
+            <SlotLocal index={0} className="row-span-2" />
+            <div className="grid grid-cols-2 gap-1.5">
+              <SlotLocal index={1} />
+              <SlotLocal index={2} />
+            </div>
+          </div>
+        );
+      case "collage":
+        return (
+          <div className="w-full h-full p-1.5 grid grid-cols-3 grid-rows-2 gap-1.5">
+            <SlotLocal index={0} className="col-span-2" />
+            <SlotLocal index={1} />
+            <SlotLocal index={2} />
+            <SlotLocal index={3} />
+            <SlotLocal index={4} />
+          </div>
+        );
+      case "family":
+        return (
+          <div className="w-full h-full p-1.5 grid grid-cols-3 grid-rows-2 gap-1.5">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <SlotLocal key={i} index={i} />
+            ))}
+          </div>
+        );
+      default:
+        return (
+          <div className="w-full h-full p-1.5 grid grid-cols-2 grid-rows-2 gap-1.5">
+            {[0, 1, 2, 3].map((i) => (
+              <SlotLocal key={i} index={i} />
+            ))}
+          </div>
+        );
+    }
   }
 
   function renderPageLayout() {
@@ -239,7 +332,7 @@ export default function EditorClient({
           onDragEnd={() => setDragSource(null)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={() => handleDropOnSlot(index)}
-          className={`relative rounded overflow-hidden border-2 bg-stone-100 flex items-center justify-center group transition ${
+          className={`relative rounded overflow-hidden border ${isAdjusting ? "cursor-move ring-2 ring-orange-500" : ""} -2 bg-stone-100 flex items-center justify-center group transition ${
             dragSource && !isAdjusting
               ? "border-orange-400 bg-orange-50/50 border-dashed"
               : isAdjusting
@@ -251,10 +344,17 @@ export default function EditorClient({
             <>
               <div
                 className="absolute inset-0 overflow-hidden"
-                onMouseDown={(e) => isAdjusting && onPanStart(e, index)}
-                onMouseMove={(e) => isAdjusting && onPanMove(e, index)}
-                onMouseUp={onPanEnd}
-                onMouseLeave={onPanEnd}
+                onPointerDown={(e) => {
+                  if (!isAdjusting) return;
+                  (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                  onPanStart(e, index);
+                }}
+                onPointerMove={(e) => isAdjusting && onPanMove(e, index)}
+                onPointerUp={onPanEnd}
+                onPointerCancel={onPanEnd}
+                onTouchStart={(e) => isAdjusting && onPanStart(e, index)}
+                onTouchMove={(e) => isAdjusting && onPanMove(e, index)}
+                onTouchEnd={onPanEnd}
                 onTouchStart={(e) => isAdjusting && onPanStart(e, index)}
                 onTouchMove={(e) => isAdjusting && onPanMove(e, index)}
                 onTouchEnd={onPanEnd}
@@ -283,7 +383,7 @@ export default function EditorClient({
                     className={`w-7 h-7 rounded-full text-white text-xs font-bold shadow ${
                       isAdjusting ? "bg-orange-600" : "bg-black/70 hover:bg-orange-600"
                     }`}
-                    title="Adjust zoom & position"
+                    title="Adjust zoom & position — then drag photo"
                   >
                     ⇄
                   </button>
@@ -550,6 +650,9 @@ export default function EditorClient({
             >
               {spreadView ? "Single page" : "Two-page spread"}
             </button>
+            <span className="text-[10px] text-stone-400">
+              Tip: use Adjust + zoom for landscape crops · Story/Travel templates suit wide photos
+            </span>
           </div>
           {isCover && (
             <div className="w-full max-w-md mb-2">
@@ -573,20 +676,16 @@ export default function EditorClient({
           >
             {spreadView && !isCover ? (
               <>
-                <div className="flex-1 border-r border-stone-200 relative overflow-hidden">
-                  {renderPageLayout()}
+                <div className="flex-1 border-r border-stone-300 relative overflow-hidden bg-white">
+                  {renderPageAt(currentPage)}
                 </div>
-                <div className="flex-1 relative overflow-hidden bg-stone-50 flex items-center justify-center text-xs text-stone-400 p-2">
+                <div className="flex-1 relative overflow-hidden bg-white">
                   {currentPage + 1 < pages.length ? (
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => setCurrentPage((p) => Math.min(pages.length - 1, p + 1))}
-                    >
-                      Facing page {currentPage + 2} — click Next to edit
-                    </button>
+                    renderPageAt(currentPage + 1)
                   ) : (
-                    "End of book"
+                    <div className="w-full h-full flex items-center justify-center text-stone-300 text-xs">
+                      End of book
+                    </div>
                   )}
                 </div>
               </>
@@ -596,7 +695,7 @@ export default function EditorClient({
           </div>
 
           <p className="mt-3 text-xs text-stone-500 text-center max-w-sm">
-            Drag photos into slots · Click <strong>⇄</strong> on a photo to zoom &
+            Drag photos into slots · Click <strong>Adjust</strong> then drag the photo to reposition ·
             reposition · Drag photos to rearrange · × to remove
           </p>
         </div>

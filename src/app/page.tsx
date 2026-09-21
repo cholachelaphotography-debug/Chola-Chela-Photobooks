@@ -102,7 +102,7 @@ export default function HomePage() {
       </main>
 
       <footer className="bg-stone-900 text-stone-400 py-8 text-center text-sm">
-        Chola Chela Photography · Kitwe, Zambia · Production Platform
+        Chola Chela Photography · Kitwe, Zambia · <a href="https://wa.me/260966080108" className="text-orange-700 hover:underline" target="_blank" rel="noreferrer">WhatsApp +260 966 080 108</a> · Production Platform
       <div className="mt-4 text-sm text-stone-500 space-y-1">
             <p>Email: <a href="mailto:cholachelaphotography@gmail.com" className="text-orange-700 underline">cholachelaphotography@gmail.com</a></p>
             <p>WhatsApp: <span className="text-stone-600">Add your number in settings</span></p>
