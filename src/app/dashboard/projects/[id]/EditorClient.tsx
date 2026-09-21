@@ -355,9 +355,6 @@ export default function EditorClient({
                 onTouchStart={(e) => isAdjusting && onPanStart(e, index)}
                 onTouchMove={(e) => isAdjusting && onPanMove(e, index)}
                 onTouchEnd={onPanEnd}
-                onTouchStart={(e) => isAdjusting && onPanStart(e, index)}
-                onTouchMove={(e) => isAdjusting && onPanMove(e, index)}
-                onTouchEnd={onPanEnd}
                 style={{ cursor: isAdjusting ? "grab" : "default" }}
               >
                 <img
