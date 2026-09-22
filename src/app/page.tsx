@@ -3,7 +3,7 @@ import Link from "next/link";
 /** Change this to your main photography website URL */
 const PHOTOGRAPHY_SITE_URL =
   process.env.NEXT_PUBLIC_PHOTOGRAPHY_SITE_URL ||
-  "https://cholachela.com";
+  "https://cholachelaphotography-debug.github.io/chola/";
 
 export default function HomePage() {
   return (
