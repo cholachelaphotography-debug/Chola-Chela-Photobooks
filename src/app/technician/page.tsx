@@ -104,7 +104,7 @@ export default async function TechnicianPage() {
             >
               Settings
             </Link>
-            <form action="/api/auth/signout" method="POST">
+            <form action="/api/auth/signout?callbackUrl=/" method="POST">
               <button
                 type="submit"
                 className="px-3 py-1.5 rounded-full text-stone-500 hover:text-orange-800 hover:bg-orange-50"

@@ -58,6 +58,8 @@ export default async function AdminPage() {
     ["printing_completed", "shipped", "delivered"].includes(o.status)
   ).length;
 
+  const totalOrders = orders.filter((o) => o.status !== "cancelled").length;
+
   const serializedOrders = orders.map((o) => ({
     id: o.id,
     amount: o.amount,
@@ -129,7 +131,7 @@ export default async function AdminPage() {
             >
               Settings
             </Link>
-            <form action="/api/auth/signout" method="POST">
+            <form action="/api/auth/signout?callbackUrl=/" method="POST">
               <button
                 type="submit"
                 className="px-3 py-1.5 rounded-full text-stone-500 hover:text-orange-800 hover:bg-orange-50"
@@ -150,14 +152,10 @@ export default async function AdminPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
-          <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-200 shadow-sm p-4">
-            <div className="text-xs font-medium text-orange-800 mb-1">
-              Revenue (paid)
-            </div>
-            <div className="text-xl font-bold text-stone-900">
-              K{((paidRevenue._sum.amount || 0) / 100).toFixed(2)}
-            </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
+          <div className="bg-gradient-to-br from-stone-50 to-white rounded-2xl border border-stone-200 shadow-sm p-4">
+            <div className="text-xs font-medium text-stone-600 mb-1">Orders</div>
+            <div className="text-xl font-bold text-stone-900">{totalOrders}</div>
           </div>
           <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl border border-amber-200 shadow-sm p-4">
             <div className="text-xs font-medium text-amber-800 mb-1">
@@ -176,6 +174,14 @@ export default async function AdminPage() {
               Completed
             </div>
             <div className="text-xl font-bold text-green-700">{completed}</div>
+          </div>
+          <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-200 shadow-sm p-4 col-span-2 md:col-span-1">
+            <div className="text-xs font-medium text-orange-800 mb-1">
+              Revenue (paid)
+            </div>
+            <div className="text-xl font-bold text-stone-900">
+              K{((paidRevenue._sum.amount || 0) / 100).toFixed(2)}
+            </div>
           </div>
         </div>
 

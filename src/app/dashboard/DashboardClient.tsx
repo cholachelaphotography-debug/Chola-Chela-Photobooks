@@ -202,7 +202,7 @@ async function handleCreate() {
               Hi, <span className="font-medium text-stone-900">{userName}</span>
             </span>
             <Link
-              href="/api/auth/signout"
+              href="/api/auth/signout?callbackUrl=/"
               className="text-sm px-3 py-1.5 rounded-full border border-stone-200 text-stone-600 hover:border-orange-400 hover:text-orange-800"
             >
               Log out

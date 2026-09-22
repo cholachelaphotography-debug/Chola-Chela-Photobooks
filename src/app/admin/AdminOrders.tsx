@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 
 type Order = {
@@ -31,6 +31,10 @@ function formatK(n: number) {
   return `K${(n / 100).toFixed(2)}`;
 }
 
+function isCompleted(status: string) {
+  return ["printing_completed", "shipped", "delivered"].includes(status);
+}
+
 export default function AdminOrders({
   initialOrders,
 }: {
@@ -39,6 +43,12 @@ export default function AdminOrders({
   const [orders, setOrders] = useState(initialOrders);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [hideCompleted, setHideCompleted] = useState(false);
+
+  const visible = useMemo(() => {
+    if (!hideCompleted) return orders;
+    return orders.filter((o) => !isCompleted(o.status));
+  }, [orders, hideCompleted]);
 
   async function runAction(orderId: string, action: string) {
     setUpdating(orderId);
@@ -73,197 +83,131 @@ export default function AdminOrders({
     }
   }
 
-  if (orders.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl border border-dashed border-stone-300 p-12 text-center text-stone-500">
-        No orders yet.
-      </div>
-    );
+  function clearCompletedFromView() {
+    if (
+      !confirm(
+        "Hide all completed orders from this list? They are not deleted — refresh the page or turn the filter off to see them again."
+      )
+    )
+      return;
+    setHideCompleted(true);
   }
 
-  const awaitingPayment = orders.filter(
-    (o) =>
-      o.status !== "cancelled" &&
-      (o.paymentStatus === "pending" ||
-        o.paymentStatus === "awaiting_confirmation")
-  );
-  const readyToRelease = orders.filter(
-    (o) => o.paymentStatus === "paid" && o.status === "payment_confirmed"
-  );
-
   return (
-    <div className="space-y-8">
-      {awaitingPayment.length > 0 && (
-        <section>
-          <h2 className="font-semibold text-stone-800 mb-3">
-            Awaiting payment confirmation ({awaitingPayment.length})
-          </h2>
-          <div className="space-y-2">
-            {awaitingPayment.map((o) => (
-              <div
-                key={o.id}
-                className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-wrap items-center gap-3 justify-between"
-              >
-                <div>
-                  <div className="font-medium">{o.project.title}</div>
-                  <div className="text-xs text-stone-600">
-                    {o.user.name} · {formatK(o.amount)} ·{" "}
-                    {o.paymentMethod?.replace(/_/g, " ") || "—"} ·{" "}
-                    {o.materialName || o.coverType}
-                  </div>
-                </div>
-                <button
-                  disabled={updating === o.id}
-                  onClick={() => runAction(o.id, "confirm_payment")}
-                  className="px-4 py-2 rounded-full bg-green-700 text-white text-sm font-medium hover:bg-green-800 disabled:opacity-50"
-                >
-                  Confirm payment & issue receipt
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {readyToRelease.length > 0 && (
-        <section>
-          <h2 className="font-semibold text-stone-800 mb-3">
-            Ready to release for printing ({readyToRelease.length})
-          </h2>
-          <div className="space-y-2">
-            {readyToRelease.map((o) => (
-              <div
-                key={o.id}
-                className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-wrap items-center gap-3 justify-between"
-              >
-                <div>
-                  <div className="font-medium">{o.project.title}</div>
-                  <div className="text-xs text-stone-600">
-                    Paid · {formatK(o.amount)}
-                    {o.receiptNumber ? ` · Receipt ${o.receiptNumber}` : ""}
-                  </div>
-                </div>
-                <button
-                  disabled={updating === o.id}
-                  onClick={() => runAction(o.id, "approve_print")}
-                  className="px-4 py-2 rounded-full bg-blue-700 text-white text-sm font-medium hover:bg-blue-800 disabled:opacity-50"
-                >
-                  Approve & release for printing
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
-        <h2 className="font-semibold text-stone-800 mb-3">All orders</h2>
-        <div className="space-y-3">
-          {orders.map((order) => {
-            const isOpen = expanded === order.id;
-            return (
-              <div
-                key={order.id}
-                className="bg-white rounded-xl border border-stone-200 overflow-hidden"
-              >
-                <button
-                  onClick={() => setExpanded(isOpen ? null : order.id)}
-                  className="w-full flex items-center gap-4 p-4 text-left hover:bg-stone-50"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">
-                      {order.project.title}
-                    </div>
-                    <div className="text-xs text-stone-500">
-                      {order.user.name} · {order.user.email}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-semibold">{formatK(order.amount)}</div>
-                    <div className="text-xs text-stone-500 capitalize">
-                      {order.status.replace(/_/g, " ")} ·{" "}
-                      {order.paymentStatus.replace(/_/g, " ")}
-                    </div>
-                  </div>
-                  <span className="text-stone-400 text-sm">
-                    {isOpen ? "▲" : "▼"}
-                  </span>
-                </button>
-
-                {isOpen && (
-                  <div className="border-t border-stone-100 p-4 bg-stone-50 space-y-4 text-sm">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-xs text-stone-500 mb-1">
-                          Specs
-                        </div>
-                        <div>
-                          {order.materialName || "—"} · {order.bookSize} ·{" "}
-                          {order.coverType}
-                        </div>
-                        <div className="text-stone-500">
-                          {order.pageCount} pages
-                          {order.quantity ? ` · qty ${order.quantity}` : ""}
-                        </div>
-                        {order.receiptNumber && (
-                          <div className="mt-1 font-mono text-xs">
-                            Receipt: {order.receiptNumber}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-xs text-stone-500 mb-1">
-                          Delivery
-                        </div>
-                        <div>{order.shippingName}</div>
-                        <div>{order.shippingPhone}</div>
-                        <div className="text-stone-500">
-                          {order.shippingAddress}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {(order.paymentStatus === "pending" ||
-                        order.paymentStatus === "awaiting_confirmation") && (
-                        <button
-                          disabled={updating === order.id}
-                          onClick={() =>
-                            runAction(order.id, "confirm_payment")
-                          }
-                          className="px-3 py-1.5 rounded-full bg-green-700 text-white text-xs font-medium"
-                        >
-                          Confirm payment
-                        </button>
-                      )}
-                      {order.paymentStatus === "paid" &&
-                        order.status === "payment_confirmed" && (
-                          <button
-                            disabled={updating === order.id}
-                            onClick={() => runAction(order.id, "approve_print")}
-                            className="px-3 py-1.5 rounded-full bg-blue-700 text-white text-xs font-medium"
-                          >
-                            Release for printing
-                          </button>
-                        )}
-                      <Link
-                        href={`/admin/books/${order.project.id}`}
-                        className="px-3 py-1.5 rounded-full bg-orange-700 text-white text-xs font-medium"
-                      >
-                        View photo book
-                      </Link>
-                    </div>
-
-                    <div className="text-xs text-stone-400">
-                      {order.id} · {new Date(order.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-stone-500">
+          Showing {visible.length} of {orders.length} orders
+          {hideCompleted ? " (completed hidden)" : ""}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setHideCompleted((v) => !v)}
+            className="text-xs px-3 py-1.5 rounded-full border border-stone-300 hover:bg-stone-50"
+          >
+            {hideCompleted ? "Show completed" : "Hide completed"}
+          </button>
+          <button
+            type="button"
+            onClick={clearCompletedFromView}
+            className="text-xs px-3 py-1.5 rounded-full border border-orange-200 text-orange-800 hover:bg-orange-50"
+          >
+            Clear completed from view
+          </button>
         </div>
-      </section>
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-dashed border-stone-300 p-12 text-center text-stone-500">
+          {orders.length === 0
+            ? "No orders yet."
+            : "No orders match this view. Show completed to see more."}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {visible.map((o) => (
+            <div
+              key={o.id}
+              className="bg-white border border-stone-200 rounded-xl p-4"
+            >
+              <div className="flex flex-wrap gap-3 justify-between items-start">
+                <div>
+                  <div className="font-medium text-stone-900">
+                    {o.project?.title || "Photo book"}
+                  </div>
+                  <div className="text-xs text-stone-500 mt-0.5">
+                    {o.user.name} · {o.user.email}
+                  </div>
+                  <div className="text-xs text-stone-500 mt-0.5">
+                    {o.materialName || o.coverType} · {o.bookSize} ·{" "}
+                    {o.pageCount} pages · {formatK(o.amount)}
+                  </div>
+                  <div className="text-xs mt-1">
+                    <span className="capitalize text-orange-700">
+                      {o.status.replace(/_/g, " ")}
+                    </span>
+                    {" · "}
+                    <span className="capitalize text-stone-600">
+                      payment: {o.paymentStatus.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    href={`/admin/books/${o.project.id}`}
+                    className="px-3 py-1.5 rounded-full border text-xs font-medium"
+                  >
+                    Preview
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpanded(expanded === o.id ? null : o.id)
+                    }
+                    className="px-3 py-1.5 rounded-full border text-xs font-medium"
+                  >
+                    {expanded === o.id ? "Less" : "Actions"}
+                  </button>
+                </div>
+              </div>
+              {expanded === o.id && (
+                <div className="mt-3 pt-3 border-t border-stone-100 flex flex-wrap gap-2">
+                  {o.paymentStatus !== "paid" && o.status !== "cancelled" && (
+                    <button
+                      disabled={updating === o.id}
+                      onClick={() => runAction(o.id, "confirm_payment")}
+                      className="px-3 py-1.5 rounded-full bg-green-700 text-white text-xs font-medium disabled:opacity-50"
+                    >
+                      Confirm payment
+                    </button>
+                  )}
+                  {o.paymentStatus === "paid" &&
+                    o.status === "payment_confirmed" && (
+                      <button
+                        disabled={updating === o.id}
+                        onClick={() => runAction(o.id, "approve_print")}
+                        className="px-3 py-1.5 rounded-full bg-blue-700 text-white text-xs font-medium disabled:opacity-50"
+                      >
+                        Release for print
+                      </button>
+                    )}
+                  {o.status !== "cancelled" &&
+                    !isCompleted(o.status) && (
+                      <button
+                        disabled={updating === o.id}
+                        onClick={() => runAction(o.id, "cancel")}
+                        className="px-3 py-1.5 rounded-full border border-red-200 text-red-600 text-xs font-medium disabled:opacity-50"
+                      >
+                        Cancel order
+                      </button>
+                    )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

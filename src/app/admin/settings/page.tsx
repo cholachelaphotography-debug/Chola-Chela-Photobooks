@@ -37,7 +37,7 @@ export default async function AdminSettingsPage() {
           >
             ← Admin dashboard
           </Link>
-          <form action="/api/auth/signout" method="POST">
+          <form action="/api/auth/signout?callbackUrl=/" method="POST">
             <button
               type="submit"
               className="text-sm text-stone-500 hover:text-orange-800"

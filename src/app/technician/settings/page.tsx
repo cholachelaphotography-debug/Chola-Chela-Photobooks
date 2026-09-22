@@ -63,7 +63,7 @@ export default function TechnicianSettingsPage() {
           </Link>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="text-sm text-stone-500 hover:text-orange-700"
           >
             Sign out
