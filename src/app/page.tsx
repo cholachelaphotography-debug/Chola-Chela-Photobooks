@@ -1,18 +1,27 @@
 import Link from "next/link";
 
+/** Change this to your main photography website URL */
+const PHOTOGRAPHY_SITE_URL =
+  process.env.NEXT_PUBLIC_PHOTOGRAPHY_SITE_URL ||
+  "https://cholachela.com";
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       {/* Nav */}
-      <nav className="border-b border-stone-200 bg-white/80 backdrop-blur">
+      <nav className="border-b border-stone-200 bg-white/90 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold">
               CC
             </div>
             <div>
-              <div className="font-semibold text-stone-900 leading-tight">Chola Chela</div>
-              <div className="text-[10px] uppercase tracking-widest text-orange-700">Photography</div>
+              <div className="font-semibold text-stone-900 leading-tight">
+                Chola Chela
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-orange-700">
+                Photo Book Studio
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -26,89 +35,205 @@ export default function HomePage() {
               href="/register"
               className="px-4 py-2 text-sm font-medium rounded-full bg-orange-700 text-white hover:bg-orange-800"
             >
-              Get Started
+              Create account
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
       <main className="flex-1">
-        <section className="max-w-6xl mx-auto px-4 py-20 md:py-28">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-semibold mb-6">
-              Production Platform
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-stone-900 leading-tight mb-6">
-              Zambia’s photo book platform is being built here
-            </h1>
-            <p className="text-lg text-stone-600 mb-8 leading-relaxed">
-              This is the production foundation for Chola Chela Photography.
-              Real authentication, cloud photo storage, auto-created photo books,
-              and order management are being implemented step by step.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link
-                href="/register"
-                className="px-6 py-3 rounded-full bg-orange-700 text-white font-semibold hover:bg-orange-800 transition"
-              >
-                Create Account
-              </Link>
-              <Link
-                href="/login"
-                className="px-6 py-3 rounded-full border border-stone-300 text-stone-700 font-semibold hover:border-orange-400 transition"
-              >
-                Log in
-              </Link>
+        {/* Hero */}
+        <section className="bg-white border-b border-stone-100">
+          <div className="max-w-6xl mx-auto px-4 py-16 md:py-24">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-widest text-orange-700 mb-3">
+                Kitwe, Zambia
+              </p>
+              <h1 className="text-4xl md:text-5xl font-bold text-stone-900 leading-tight mb-5">
+                Chola Chela Photo Book Studio
+              </h1>
+              <p className="text-lg text-stone-600 mb-8 leading-relaxed">
+                Professional photo book and photo album design and printing.
+                Upload your photos, design a beautiful book online, choose your
+                materials, and order print-ready albums — all in one place.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/register"
+                  className="px-6 py-3 rounded-full bg-orange-700 text-white font-semibold hover:bg-orange-800 transition"
+                >
+                  Start your photo book
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-6 py-3 rounded-full border border-stone-300 text-stone-800 font-semibold hover:border-orange-400 hover:text-orange-800 transition"
+                >
+                  Log in to your studio
+                </Link>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Status */}
-        <section className="bg-white border-t border-stone-200 py-16">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-2xl font-bold text-stone-900 mb-8">Current Status</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* What we offer */}
+        <section className="max-w-6xl mx-auto px-4 py-16">
+          <h2 className="text-2xl font-bold text-stone-900 mb-2">
+            Photo books &amp; printing
+          </h2>
+          <p className="text-stone-600 mb-10 max-w-2xl">
+            This platform is built for designing, ordering and printing custom
+            photo books and albums — not for browsing a general portfolio site.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              {
+                title: "Custom photo book design",
+                body: "Choose templates, arrange your photos, zoom and position each image, and personalise the cover.",
+              },
+              {
+                title: "Professional printing",
+                body: "Submit your finished book for high-quality printing with clear order tracking.",
+              },
+              {
+                title: "Materials & finishes",
+                body: "Select materials and cover types so pricing matches the finish you want.",
+              },
+              {
+                title: "Photo albums",
+                body: "Create lasting albums for weddings, families, graduations and special moments.",
+              },
+              {
+                title: "Order online",
+                body: "Design in your account, review the total, then pay now or pay later for admin confirmation.",
+              },
+              {
+                title: "Related print services",
+                body: "Photo book production sits alongside our wider photographic print offering.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-white rounded-2xl border border-stone-200 p-5"
+              >
+                <h3 className="font-semibold text-stone-900 mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-stone-600 leading-relaxed">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="bg-white border-y border-stone-100">
+          <div className="max-w-6xl mx-auto px-4 py-14">
+            <h2 className="text-2xl font-bold text-stone-900 mb-8">
+              How it works
+            </h2>
+            <ol className="grid md:grid-cols-4 gap-6">
               {[
-                { title: "Authentication", status: "Ready", desc: "Email + password signup & login" },
-                { title: "Database", status: "Ready", desc: "Prisma + SQLite (switchable to Postgres)" },
-                { title: "Photo Upload API", status: "Ready", desc: "Cloudinary support + local fallback" },
-                { title: "Projects / Auto-create", status: "Ready", desc: "API for creating & auto-filling books" },
-                { title: "Orders Model", status: "Ready", desc: "Database model prepared for payments" },
-                { title: "Full Editor UI", status: "In Progress", desc: "Porting the drag-and-drop editor" },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="p-5 rounded-2xl border border-stone-200 bg-stone-50"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-stone-900">{item.title}</h3>
-                    <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                        item.status === "Ready"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-stone-600">{item.desc}</p>
-                </div>
+                "Create a free account",
+                "Upload your photos",
+                "Design your book",
+                "Order and print",
+              ].map((step, i) => (
+                <li key={step} className="flex gap-3">
+                  <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-800 font-bold flex items-center justify-center shrink-0 text-sm">
+                    {i + 1}
+                  </span>
+                  <span className="font-medium text-stone-800 pt-1">{step}</span>
+                </li>
               ))}
-            </div>
+            </ol>
+          </div>
+        </section>
+
+        {/* Other photography services */}
+        <section className="max-w-6xl mx-auto px-4 py-16">
+          <div className="bg-stone-900 text-white rounded-3xl p-8 md:p-10">
+            <h2 className="text-2xl font-bold mb-3">Other photography services</h2>
+            <p className="text-stone-300 mb-4 max-w-2xl leading-relaxed">
+              In addition to photo books and printing, Chola Chela also provides
+              professional photography for weddings, kitchen parties, Ichilanga
+              Mulilo, bridal showers, family and portrait sessions, graduations,
+              maternity, baby, corporate and other special events.
+            </p>
+            <p className="text-stone-400 text-sm mb-6 max-w-2xl">
+              Full photography packages and portfolios are on our dedicated
+              photography website. This site stays focused on photo books,
+              albums and printing.
+            </p>
+            <a
+              href={PHOTOGRAPHY_SITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex px-6 py-3 rounded-full bg-white text-stone-900 font-semibold hover:bg-orange-50 transition"
+            >
+              Explore photography services
+            </a>
           </div>
         </section>
       </main>
 
-      <footer className="bg-stone-900 text-stone-400 py-8 text-center text-sm">
-        Chola Chela Photography · Kitwe, Zambia · <a href="https://wa.me/260966080108" className="text-orange-700 hover:underline" target="_blank" rel="noreferrer">WhatsApp +260 966 080 108</a> · Production Platform
-      <div className="mt-4 text-sm text-stone-500 space-y-1">
-            <p>Email: <a href="mailto:cholachelaphotography@gmail.com" className="text-orange-700 underline">cholachelaphotography@gmail.com</a></p>
-            <p>WhatsApp: <span className="text-stone-600">Add your number in settings</span></p>
-            <p>Location: Kitwe, Zambia</p>
+      {/* Footer / contact — single WhatsApp */}
+      <footer className="border-t border-stone-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+            <div>
+              <div className="font-semibold text-stone-900">
+                Chola Chela Photo Book Studio
+              </div>
+              <p className="text-sm text-stone-500 mt-1">
+                Photo book design, albums &amp; professional printing · Kitwe,
+                Zambia
+              </p>
+            </div>
+            <div className="text-sm text-stone-600 space-y-2">
+              <p>
+                <span className="text-stone-400">Email: </span>
+                <a
+                  href="mailto:cholachelaphotography@gmail.com"
+                  className="text-orange-700 hover:underline"
+                >
+                  cholachelaphotography@gmail.com
+                </a>
+              </p>
+              <p>
+                <span className="text-stone-400">WhatsApp: </span>
+                <a
+                  href="https://wa.me/260966080108"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-orange-700 hover:underline"
+                >
+                  +260 966 080 108
+                </a>
+              </p>
+              <p className="text-stone-500">Kitwe, Zambia</p>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href="/login"
+                className="text-sm font-medium text-stone-600 hover:text-orange-700"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-medium text-orange-700 hover:underline"
+              >
+                Create account
+              </Link>
+            </div>
           </div>
-        </footer>
+          <p className="text-xs text-stone-400 mt-8">
+            © {new Date().getFullYear()} Chola Chela Photography. All rights
+            reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

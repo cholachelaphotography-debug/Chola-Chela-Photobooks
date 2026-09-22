@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import AdminOrders from "./AdminOrders";
+import AdminUsers from "./AdminUsers";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -157,6 +158,10 @@ export default async function AdminPage() {
           </div>
         </div>
 
+        <section className="mb-10">
+          <h2 className="text-lg font-semibold text-stone-900 mb-4">User management</h2>
+          <AdminUsers />
+        </section>
         <AdminOrders initialOrders={serializedOrders} />
       </main>
     </div>

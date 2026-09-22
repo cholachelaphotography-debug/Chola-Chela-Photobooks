@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 
 function LoginForm() {
   const router = useRouter();
@@ -38,7 +38,17 @@ function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      // Role-based redirect
+      const session = await getSession();
+      const role = (session?.user as { role?: string } | undefined)?.role;
+
+      if (role === "admin") {
+        router.push("/admin");
+      } else if (role === "technician") {
+        router.push("/technician");
+      } else {
+        router.push("/dashboard");
+      }
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
@@ -49,7 +59,10 @@ function LoginForm() {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-stone-100 p-8">
       <h1 className="text-2xl font-bold text-stone-900 mb-1">Welcome back</h1>
-      <p className="text-stone-500 text-sm mb-6">Log in to continue designing</p>
+      <p className="text-stone-500 text-sm mb-6">
+        Log in to your studio. You will be taken to the right dashboard for your
+        role.
+      </p>
 
       {successMessage && (
         <div className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg mb-4">
@@ -128,7 +141,7 @@ export default function LoginPage() {
                 Chola Chela
               </div>
               <div className="text-[10px] uppercase tracking-widest text-orange-700">
-                Photography
+                Photo Book Studio
               </div>
             </div>
           </Link>
