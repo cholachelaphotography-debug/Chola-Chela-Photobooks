@@ -38,10 +38,19 @@ function LoginForm() {
         return;
       }
 
-      // Role-based redirect
+      // Force password change for temp admin-created accounts
       const session = await getSession();
-      const role = (session?.user as { role?: string } | undefined)?.role;
+      const user = session?.user as
+        | { role?: string; mustChangePassword?: boolean }
+        | undefined;
 
+      if (user?.mustChangePassword) {
+        router.push("/change-password");
+        router.refresh();
+        return;
+      }
+
+      const role = user?.role;
       if (role === "admin") {
         router.push("/admin");
       } else if (role === "technician") {

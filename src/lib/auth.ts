@@ -10,7 +10,6 @@ const loginSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  // Required on Vercel so preview + production hosts both work
   trustHost: true,
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [
@@ -31,9 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!user) return null;
-
-        // Soft-block inactive technicians/users if column exists
-        if ("active" in user && user.active === false) return null;
+        if (user.active === false) return null;
 
         const valid = await compare(password, user.passwordHash);
         if (!valid) return null;
@@ -43,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          mustChangePassword: user.mustChangePassword === true,
         };
       },
     }),
@@ -55,19 +53,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role;
+        token.mustChangePassword = (user as { mustChangePassword?: boolean })
+          .mustChangePassword;
+      }
+      if (trigger === "update" && session) {
+        if (typeof (session as { mustChangePassword?: boolean }).mustChangePassword === "boolean") {
+          token.mustChangePassword = (session as { mustChangePassword: boolean }).mustChangePassword;
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as { role?: string }).role = token.role as
-          | string
-          | undefined;
+        (session.user as { role?: string }).role = token.role as string | undefined;
+        (session.user as { mustChangePassword?: boolean }).mustChangePassword =
+          token.mustChangePassword === true;
       }
       return session;
     },

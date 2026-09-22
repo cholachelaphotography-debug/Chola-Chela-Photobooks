@@ -80,7 +80,7 @@ export default function AdminUsers() {
       <section className="bg-white rounded-2xl border border-stone-200 p-6">
         <h2 className="font-semibold text-stone-900 mb-1">Create technician</h2>
         <p className="text-sm text-stone-500 mb-4">
-          Technicians log in on the normal login page and are sent to the print
+          Technicians log in with this temporary password, then must set a new password on first sign-in. They are sent to the print
           queue. They cannot access admin settings.
         </p>
         <form onSubmit={handleCreate} className="grid sm:grid-cols-2 gap-3">

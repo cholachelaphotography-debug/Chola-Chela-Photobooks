@@ -16,6 +16,7 @@ model User {
   passwordHash  String
   role          String    @default("client") // client | admin | technician
   active        Boolean   @default(true)
+  mustChangePassword Boolean @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

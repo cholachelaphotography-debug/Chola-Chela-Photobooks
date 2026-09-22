@@ -10,8 +10,12 @@ export default async function TechnicianPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { role: true, name: true, active: true },
+    select: { role: true, name: true, active: true, mustChangePassword: true },
   });
+
+  if (user?.mustChangePassword) {
+    redirect("/change-password");
+  }
 
   if (!user || (user.role !== "technician" && user.role !== "admin") || user.active === false) {
     return (
