@@ -174,22 +174,37 @@ async function handleCreate() {
   const selectedTmpl = TEMPLATES.find((t) => t.id === selectedTemplate);
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      {/* Nav */}
-      <nav className="border-b border-stone-200 bg-white sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold">
+    <div className="min-h-screen bg-stone-100">
+      <div className="bg-orange-800 text-orange-50 text-xs py-1.5">
+        <div className="max-w-6xl mx-auto px-4 flex flex-wrap justify-between gap-2">
+          <span>Chola Chela Photo Book Studio · Kitwe, Zambia</span>
+          <span className="opacity-90">Your design studio</span>
+        </div>
+      </div>
+
+      <nav className="border-b border-stone-200 bg-white sticky top-0 z-40 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold text-lg">
               CC
             </div>
             <div>
-              <div className="font-semibold text-stone-900 leading-tight">Chola Chela</div>
-              <div className="text-[10px] uppercase tracking-widest text-orange-700">Photography</div>
+              <div className="font-semibold text-stone-900 leading-tight">
+                Chola Chela
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-orange-700">
+                Photo Book Studio
+              </div>
             </div>
           </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-stone-600">Hi, {userName}</span>
-            <Link href="/api/auth/signout" className="text-sm text-stone-500 hover:text-stone-800">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-stone-600 hidden sm:inline">
+              Hi, <span className="font-medium text-stone-900">{userName}</span>
+            </span>
+            <Link
+              href="/api/auth/signout"
+              className="text-sm px-3 py-1.5 rounded-full border border-stone-200 text-stone-600 hover:border-orange-400 hover:text-orange-800"
+            >
               Log out
             </Link>
           </div>
@@ -197,10 +212,21 @@ async function handleCreate() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 py-10">
+        <div className="rounded-3xl bg-gradient-to-br from-orange-700 via-orange-600 to-amber-600 text-white p-6 md:p-8 mb-8 shadow-md">
+          <h1 className="text-2xl md:text-3xl font-bold">My Studio</h1>
+          <p className="text-orange-100 mt-2 max-w-xl">
+            Welcome back, {userName}. Design beautiful photo books with Chola
+            Chela Photo Book Studio — upload photos, choose templates, and
+            order print-ready albums.
+          </p>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-stone-900">My Studio</h1>
-            <p className="text-stone-500">Welcome back, {userName}. Design and manage your photo books.</p>
+            <h2 className="text-lg font-semibold text-stone-900">Your workspace</h2>
+            <p className="text-sm text-stone-500">
+              Create, edit and order photo books
+            </p>
           </div>
           <div className="flex gap-3">
             {photos.length > 0 && (
@@ -386,6 +412,23 @@ async function handleCreate() {
           </div>
         </div>
       </main>
+
+      <footer className="border-t border-stone-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-xs text-stone-500">
+          <span className="font-medium text-stone-700">Chola Chela Photography</span>
+          {" · "}
+          Photo Book Studio · Kitwe, Zambia
+          <br />
+          <a
+            href="https://wa.me/260966080108"
+            className="text-orange-700 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp +260 966 080 108
+          </a>
+        </div>
+      </footer>
 
       {/* Create Book Modal */}
       {showCreate && (
