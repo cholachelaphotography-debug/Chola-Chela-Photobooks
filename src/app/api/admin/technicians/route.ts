@@ -115,3 +115,21 @@ export async function PATCH(req: Request) {
   });
   return NextResponse.json(user);
 }
+
+
+export async function DELETE(req: Request) {
+  if (!(await requireAdmin())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const body = await req.json().catch(() => ({}));
+  const id = (body as { id?: string }).id;
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+  const existing = await prisma.user.findUnique({ where: { id } });
+  if (!existing || existing.role !== "technician") {
+    return NextResponse.json({ error: "Technician not found" }, { status: 404 });
+  }
+  await prisma.user.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}

@@ -75,8 +75,13 @@ export default function AdminUsers() {
     if (res.ok) await load();
   }
 
-  async function resetPassword(id: string, name: string) {
-    if (!confirm(`Reset password for ${name}? They will need a temporary password on next login.`)) return;
+  async function resetPassword(id: string, techName: string) {
+    if (
+      !confirm(
+        `Reset password for ${techName}? They will need a temporary password on next login.`
+      )
+    )
+      return;
     const res = await fetch("/api/admin/technicians", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -88,8 +93,28 @@ export default function AdminUsers() {
       return;
     }
     alert(
-      `Temporary password for ${name}:\n\n${data.temporaryPassword}\n\nShare this securely. They must change it on next login.`
+      `Temporary password for ${techName}:\n\n${data.temporaryPassword}\n\nShare this securely. They must change it on next login.`
     );
+  }
+
+  async function deleteTech(id: string, techName: string) {
+    if (
+      !confirm(
+        `Permanently delete technician "${techName}"? This cannot be undone.`
+      )
+    )
+      return;
+    const res = await fetch("/api/admin/technicians", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(data.error || "Delete failed");
+      return;
+    }
+    await load();
   }
 
   return (
@@ -97,8 +122,8 @@ export default function AdminUsers() {
       <section className="bg-white rounded-2xl border border-stone-200 p-6">
         <h2 className="font-semibold text-stone-900 mb-1">Create technician</h2>
         <p className="text-sm text-stone-500 mb-4">
-          Technicians log in with this temporary password, then must set a new password on first sign-in. They are sent to the print
-          queue. They cannot access admin settings.
+          Technicians log in with a temporary password, then must set a new
+          password on first sign-in.
         </p>
         <form onSubmit={handleCreate} className="grid sm:grid-cols-2 gap-3">
           <input
@@ -133,16 +158,14 @@ export default function AdminUsers() {
             {saving ? "Creating..." : "Create technician account"}
           </button>
         </form>
-        {error && (
-          <p className="text-sm text-red-600 mt-3">{error}</p>
-        )}
-        {message && (
-          <p className="text-sm text-green-700 mt-3">{message}</p>
-        )}
+        {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+        {message && <p className="text-sm text-green-700 mt-3">{message}</p>}
       </section>
 
       <section className="bg-white rounded-2xl border border-stone-200 p-6">
-        <h2 className="font-semibold text-stone-900 mb-4">Technician accounts</h2>
+        <h2 className="font-semibold text-stone-900 mb-4">
+          Technician accounts
+        </h2>
         {loading ? (
           <p className="text-sm text-stone-500">Loading...</p>
         ) : techs.length === 0 ? (
@@ -161,7 +184,7 @@ export default function AdminUsers() {
                     {t.active ? "Active" : "Inactive"}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => resetPassword(t.id, t.name)}
@@ -175,6 +198,13 @@ export default function AdminUsers() {
                     className="text-xs px-3 py-1.5 rounded-full border border-stone-300 hover:bg-stone-50"
                   >
                     {t.active ? "Deactivate" : "Activate"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTech(t.id, t.name)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    Delete
                   </button>
                 </div>
               </li>

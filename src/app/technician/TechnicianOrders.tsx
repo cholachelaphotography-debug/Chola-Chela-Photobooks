@@ -19,26 +19,31 @@ type Order = {
 };
 
 export default function TechnicianOrders({
+  title,
+  description,
   initialOrders,
+  emptyText,
 }: {
+  title: string;
+  description?: string;
   initialOrders: Order[];
+  emptyText?: string;
 }) {
   const [orders, setOrders] = useState(initialOrders);
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function action(id: string, action: string) {
+  async function action(id: string, actionName: string) {
     setBusy(id);
     try {
       const res = await fetch(`/api/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action: actionName }),
       });
       if (res.ok) {
-        const u = await res.json();
-        setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, status: u.status } : o))
-        );
+        // Remove from this section after status change; page refresh picks up lists
+        setOrders((prev) => prev.filter((o) => o.id !== id));
+        window.location.reload();
       } else {
         const d = await res.json();
         alert(d.error || "Failed");
@@ -48,59 +53,63 @@ export default function TechnicianOrders({
     }
   }
 
-  if (orders.length === 0) {
-    return (
-      <div className="bg-white border border-dashed rounded-2xl p-12 text-center text-stone-500">
-        No books in the print queue.
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-3">
-      {orders.map((o) => (
-        <div
-          key={o.id}
-          className="bg-white border border-stone-200 rounded-xl p-4 flex flex-wrap gap-4 justify-between items-center"
-        >
-          <div>
-            <div className="font-medium">{o.project.title}</div>
-            <div className="text-xs text-stone-500">
-              {o.materialName || o.coverType} · {o.bookSize} · {o.pageCount}{" "}
-              pages · {o.user.name}
-            </div>
-            <div className="text-xs capitalize text-orange-700 mt-0.5">
-              {o.status.replace(/_/g, " ")}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/admin/books/${o.project.id}`}
-              className="px-3 py-1.5 rounded-full border text-xs font-medium"
-            >
-              Preview book
-            </Link>
-            {o.status === "approved_for_print" && (
-              <button
-                disabled={busy === o.id}
-                onClick={() => action(o.id, "start_print")}
-                className="px-3 py-1.5 rounded-full bg-blue-700 text-white text-xs font-medium"
-              >
-                Start printing
-              </button>
-            )}
-            {o.status === "printing" && (
-              <button
-                disabled={busy === o.id}
-                onClick={() => action(o.id, "complete_print")}
-                className="px-3 py-1.5 rounded-full bg-green-700 text-white text-xs font-medium"
-              >
-                Mark printing completed
-              </button>
-            )}
-          </div>
+    <section>
+      <h2 className="text-lg font-semibold text-stone-900">{title}</h2>
+      {description && (
+        <p className="text-sm text-stone-500 mb-3">{description}</p>
+      )}
+      {orders.length === 0 ? (
+        <div className="bg-white border border-dashed rounded-2xl p-8 text-center text-stone-500 text-sm">
+          {emptyText || "Nothing here."}
         </div>
-      ))}
-    </div>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((o) => (
+            <div
+              key={o.id}
+              className="bg-white border border-stone-200 rounded-xl p-4 flex flex-wrap gap-4 justify-between items-center"
+            >
+              <div>
+                <div className="font-medium">{o.project.title}</div>
+                <div className="text-xs text-stone-500">
+                  {o.materialName || o.coverType} · {o.bookSize} · {o.pageCount}{" "}
+                  pages · Client: {o.user.name}
+                </div>
+                <div className="text-xs capitalize text-orange-700 mt-0.5">
+                  {o.status.replace(/_/g, " ")}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={`/admin/books/${o.project.id}`}
+                  className="px-3 py-1.5 rounded-full border text-xs font-medium"
+                >
+                  Preview book
+                </Link>
+                {o.status === "approved_for_print" && (
+                  <button
+                    disabled={busy === o.id}
+                    onClick={() => action(o.id, "start_print")}
+                    className="px-3 py-1.5 rounded-full bg-blue-700 text-white text-xs font-medium"
+                  >
+                    Start printing
+                  </button>
+                )}
+                {o.status === "printing" && (
+                  <button
+                    disabled={busy === o.id}
+                    onClick={() => action(o.id, "complete_print")}
+                    className="px-3 py-1.5 rounded-full bg-green-700 text-white text-xs font-medium"
+                  >
+                    Mark completed
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

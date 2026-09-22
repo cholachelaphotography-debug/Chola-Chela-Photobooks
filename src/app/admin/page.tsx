@@ -7,10 +7,7 @@ import AdminUsers from "./AdminUsers";
 
 export default async function AdminPage() {
   const session = await auth();
-
-  if (!session?.user?.id) {
-    redirect("/login");
-  }
+  if (!session?.user?.id) redirect("/login");
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -22,12 +19,9 @@ export default async function AdminPage() {
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl border border-stone-200 p-8 max-w-md text-center">
           <h1 className="text-xl font-bold text-stone-900 mb-2">Access denied</h1>
-          <p className="text-stone-500 text-sm mb-6">
-            This page is only for administrators.
-          </p>
           <Link
             href="/dashboard"
-            className="inline-block px-5 py-2.5 rounded-full bg-orange-700 text-white text-sm font-medium"
+            className="inline-block mt-4 px-5 py-2.5 rounded-full bg-orange-700 text-white text-sm font-medium"
           >
             Back to Studio
           </Link>
@@ -36,30 +30,34 @@ export default async function AdminPage() {
     );
   }
 
-  const [orders, stats] = await Promise.all([
-    prisma.order.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        user: { select: { name: true, email: true } },
-        project: { select: { id: true, title: true, pageCount: true } },
-      },
-    }),
-    prisma.order.groupBy({
-      by: ["status"],
-      _count: true,
-    }),
-  ]);
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } },
+      project: { select: { id: true, title: true, pageCount: true } },
+    },
+  });
 
-  const totalRevenue = await prisma.order.aggregate({
+  const paidRevenue = await prisma.order.aggregate({
     where: { paymentStatus: "paid" },
     _sum: { amount: true },
   });
 
-  const statusCounts = Object.fromEntries(
-    stats.map((s) => [s.status, s._count])
-  );
+  const pendingPayment = orders.filter(
+    (o) =>
+      o.status !== "cancelled" &&
+      (o.paymentStatus === "pending" ||
+        o.paymentStatus === "awaiting_confirmation")
+  ).length;
 
-  // Serialize for client
+  const inProgress = orders.filter((o) =>
+    ["approved_for_print", "printing"].includes(o.status)
+  ).length;
+
+  const completed = orders.filter((o) =>
+    ["printing_completed", "shipped", "delivered"].includes(o.status)
+  ).length;
+
   const serializedOrders = orders.map((o) => ({
     id: o.id,
     amount: o.amount,
@@ -86,83 +84,58 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold text-sm">
-                CC
-              </div>
-              <div>
-                <div className="font-semibold text-stone-900 leading-tight">
-                  Chola Chela
-                </div>
-                <div className="text-[10px] uppercase tracking-widest text-orange-700">
-                  Admin
-                </div>
-              </div>
-            </Link>
+      <header className="bg-white border-b">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center gap-4">
+          <div>
+            <div className="font-semibold text-stone-900">{user.name}</div>
+            <div className="text-xs text-stone-500">Administrator</div>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-stone-600">{user.name}</span>
-            <Link
-              href="/technician"
-              className="text-sm text-stone-500 hover:text-orange-700"
-            >
-              Technician
+          <div className="flex gap-4 text-sm">
+            <Link href="/technician" className="text-stone-500 hover:text-orange-700">
+              Print queue
             </Link>
-            <Link
-              href="/dashboard"
-              className="text-sm text-stone-500 hover:text-orange-700"
-            >
-              Client Studio
-            </Link>
-            <Link
-              href="/api/auth/signout"
-              className="text-sm text-stone-500 hover:text-stone-800"
-            >
-              Log out
+            <Link href="/dashboard" className="text-stone-500 hover:text-orange-700">
+              Client studio
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-stone-900 mb-6">Admin Dashboard</h1>
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-stone-900 mb-6">Admin dashboard</h1>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
           <div className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="text-2xl font-bold text-stone-900">
-              {orders.length}
+            <div className="text-xs text-stone-500 mb-1">Revenue (paid)</div>
+            <div className="text-xl font-bold text-stone-900">
+              K{((paidRevenue._sum.amount || 0) / 100).toFixed(2)}
             </div>
-            <div className="text-xs text-stone-500">Total orders</div>
           </div>
           <div className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="text-2xl font-bold text-orange-700">
-              {statusCounts["pending"] || 0}
-            </div>
-            <div className="text-xs text-stone-500">Pending</div>
+            <div className="text-xs text-stone-500 mb-1">Pending payment</div>
+            <div className="text-xl font-bold text-amber-700">{pendingPayment}</div>
           </div>
           <div className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="text-2xl font-bold text-blue-700">
-              {(statusCounts["printing"] || 0) + (statusCounts["paid"] || 0)}
-            </div>
-            <div className="text-xs text-stone-500">In progress</div>
+            <div className="text-xs text-stone-500 mb-1">In progress</div>
+            <div className="text-xl font-bold text-blue-700">{inProgress}</div>
           </div>
           <div className="bg-white rounded-xl border border-stone-200 p-4">
-            <div className="text-2xl font-bold text-green-700">
-              K{((totalRevenue._sum.amount || 0) / 100).toFixed(0)}
-            </div>
-            <div className="text-xs text-stone-500">Paid revenue</div>
+            <div className="text-xs text-stone-500 mb-1">Completed</div>
+            <div className="text-xl font-bold text-green-700">{completed}</div>
           </div>
         </div>
 
         <section className="mb-10">
-          <h2 className="text-lg font-semibold text-stone-900 mb-4">User management</h2>
+          <h2 className="text-lg font-semibold text-stone-900 mb-4">
+            User management
+          </h2>
           <AdminUsers />
         </section>
-        <AdminOrders initialOrders={serializedOrders} />
+
+        <section>
+          <h2 className="text-lg font-semibold text-stone-900 mb-4">Orders</h2>
+          <AdminOrders initialOrders={serializedOrders} />
+        </section>
       </main>
     </div>
   );
