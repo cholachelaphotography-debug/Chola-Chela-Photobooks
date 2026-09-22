@@ -23,7 +23,7 @@ export default async function TechnicianPage() {
     user.active === false
   ) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-stone-50">
         <div className="bg-white border rounded-2xl p-8 max-w-md text-center">
           <h1 className="font-bold text-lg mb-2">Technician access only</h1>
           <Link href="/login" className="text-orange-700 text-sm underline">
@@ -70,26 +70,44 @@ export default async function TechnicianPage() {
   );
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-stone-100">
+      {/* Brand bar */}
+      <div className="bg-orange-800 text-orange-50 text-xs py-1.5">
+        <div className="max-w-5xl mx-auto px-4 flex flex-wrap justify-between gap-2">
+          <span>Chola Chela Photo Book Studio · Kitwe, Zambia</span>
+          <span className="opacity-90">Production workspace</span>
+        </div>
+      </div>
+
+      <header className="bg-white border-b border-stone-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center gap-4">
-          <div>
-            <div className="font-semibold text-stone-900 text-lg">
-              {user.name}
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold text-lg shrink-0">
+              CC
             </div>
-            <div className="text-xs text-stone-500">Technician dashboard</div>
+            <div>
+              <div className="font-semibold text-stone-900 leading-tight">
+                Chola Chela
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-orange-700">
+                Photo Book Studio · Technician
+              </div>
+              <div className="text-sm text-stone-600 mt-0.5">
+                Signed in as <span className="font-medium text-stone-900">{user.name}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-3 text-sm">
             <Link
               href="/technician/settings"
-              className="text-stone-600 hover:text-orange-700 font-medium"
+              className="px-3 py-1.5 rounded-full border border-stone-200 text-stone-700 hover:border-orange-400 hover:text-orange-800 font-medium"
             >
               Settings
             </Link>
             <form action="/api/auth/signout" method="POST">
               <button
                 type="submit"
-                className="text-stone-500 hover:text-orange-700"
+                className="px-3 py-1.5 rounded-full text-stone-500 hover:text-orange-800 hover:bg-orange-50"
               >
                 Sign out
               </button>
@@ -99,22 +117,36 @@ export default async function TechnicianPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-10">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-900">Print production</h1>
+          <p className="text-sm text-stone-500 mt-1">
+            Manage photo books released for printing by Chola Chela Photo Book
+            Studio.
+          </p>
+        </div>
+
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-xl border border-stone-200 p-4 text-center">
+          <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-amber-700">{pending.length}</div>
-            <div className="text-xs text-stone-500 mt-1">Pending</div>
+            <div className="text-xs font-medium text-stone-600 mt-1">
+              Photobooks pending
+            </div>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 p-4 text-center">
+          <div className="bg-white rounded-2xl border border-blue-200 shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-blue-700">
               {inProgress.length}
             </div>
-            <div className="text-xs text-stone-500 mt-1">In progress</div>
+            <div className="text-xs font-medium text-stone-600 mt-1">
+              In progress
+            </div>
           </div>
-          <div className="bg-white rounded-xl border border-stone-200 p-4 text-center">
+          <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-4 text-center">
             <div className="text-2xl font-bold text-green-700">
               {completed.length}
             </div>
-            <div className="text-xs text-stone-500 mt-1">Completed</div>
+            <div className="text-xs font-medium text-stone-600 mt-1">
+              Completed
+            </div>
           </div>
         </div>
 
@@ -132,11 +164,28 @@ export default async function TechnicianPage() {
         />
         <TechnicianOrders
           title="Photobooks completed"
-          description="Printing finished"
+          description="Printing finished — visible on the admin dashboard as completed"
           initialOrders={completed}
           emptyText="No completed jobs yet."
         />
       </main>
+
+      <footer className="border-t border-stone-200 bg-white mt-8">
+        <div className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-stone-500">
+          <span className="font-medium text-stone-700">Chola Chela Photography</span>
+          {" · "}
+          Photo Book Studio · Kitwe, Zambia
+          <br />
+          <a
+            href="https://wa.me/260966080108"
+            className="text-orange-700 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp +260 966 080 108
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

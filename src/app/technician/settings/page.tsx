@@ -50,13 +50,16 @@ export default function TechnicianSettingsPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      <div className="bg-orange-800 text-orange-50 text-xs py-1.5 text-center">
+        Chola Chela Photo Book Studio
+      </div>
       <header className="bg-white border-b">
         <div className="max-w-lg mx-auto px-4 py-4 flex justify-between items-center">
           <Link
             href="/technician"
             className="text-sm text-stone-500 hover:text-orange-700"
           >
-            ← Print queue
+            ← Print production
           </Link>
           <button
             type="button"
@@ -69,7 +72,14 @@ export default function TechnicianSettingsPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold text-stone-900 mb-2">Settings</h1>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-9 h-9 rounded-full bg-orange-700 text-white flex items-center justify-center font-bold text-sm">CC</div>
+          <div>
+            <div className="font-semibold text-stone-900 text-sm">Chola Chela</div>
+            <div className="text-[10px] uppercase tracking-widest text-orange-700">Technician settings</div>
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold text-stone-900 mb-2">Account settings</h1>
         <p className="text-sm text-stone-500 mb-8">
           Change your password. You must enter your current password first.
         </p>
