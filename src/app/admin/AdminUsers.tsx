@@ -75,6 +75,23 @@ export default function AdminUsers() {
     if (res.ok) await load();
   }
 
+  async function resetPassword(id: string, name: string) {
+    if (!confirm(`Reset password for ${name}? They will need a temporary password on next login.`)) return;
+    const res = await fetch("/api/admin/technicians", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, resetPassword: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Reset failed");
+      return;
+    }
+    alert(
+      `Temporary password for ${name}:\n\n${data.temporaryPassword}\n\nShare this securely. They must change it on next login.`
+    );
+  }
+
   return (
     <div className="space-y-8">
       <section className="bg-white rounded-2xl border border-stone-200 p-6">
@@ -144,13 +161,22 @@ export default function AdminUsers() {
                     {t.active ? "Active" : "Inactive"}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => toggleActive(t.id, t.active)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-stone-300 hover:bg-stone-50"
-                >
-                  {t.active ? "Deactivate" : "Activate"}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => resetPassword(t.id, t.name)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-stone-300 hover:bg-stone-50"
+                  >
+                    Reset password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(t.id, t.active)}
+                    className="text-xs px-3 py-1.5 rounded-full border border-stone-300 hover:bg-stone-50"
+                  >
+                    {t.active ? "Deactivate" : "Activate"}
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const exists = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
+    where: { email: parsed.data.email.toLowerCase() },
   });
   if (exists) {
     return NextResponse.json({ error: "Email already in use" }, { status: 400 });
@@ -74,8 +74,38 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const body = await req.json();
-  const { id, active } = body as { id?: string; active?: boolean };
-  if (!id || typeof active !== "boolean") {
+  const { id, active, resetPassword, newPassword } = body as {
+    id?: string;
+    active?: boolean;
+    resetPassword?: boolean;
+    newPassword?: string;
+  };
+  if (!id) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  if (resetPassword) {
+    const temp =
+      typeof newPassword === "string" && newPassword.length >= 6
+        ? newPassword
+        : Math.random().toString(36).slice(-8) + "A1";
+    const passwordHash = await bcrypt.hash(temp, 10);
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash,
+        mustChangePassword: true,
+      },
+      select: { id: true, name: true, email: true, active: true },
+    });
+    return NextResponse.json({
+      ...user,
+      temporaryPassword: temp,
+      message: "Password reset. Share the temporary password with the technician.",
+    });
+  }
+
+  if (typeof active !== "boolean") {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
   const user = await prisma.user.update({
