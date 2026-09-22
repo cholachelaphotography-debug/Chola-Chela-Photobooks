@@ -110,7 +110,7 @@ export default async function AdminPage() {
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 text-sm">
+          <div className="flex flex-wrap gap-2 text-sm items-center">
             <Link
               href="/technician"
               className="px-3 py-1.5 rounded-full border border-stone-200 text-stone-700 hover:border-orange-400 hover:text-orange-800"
@@ -123,6 +123,20 @@ export default async function AdminPage() {
             >
               Client studio
             </Link>
+            <Link
+              href="/admin/settings"
+              className="px-3 py-1.5 rounded-full border border-stone-200 text-stone-700 hover:border-orange-400 hover:text-orange-800 font-medium"
+            >
+              Settings
+            </Link>
+            <form action="/api/auth/signout" method="POST">
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-full text-stone-500 hover:text-orange-800 hover:bg-orange-50"
+              >
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
       </header>
