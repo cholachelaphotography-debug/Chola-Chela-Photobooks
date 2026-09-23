@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import AdminOrders from "./AdminOrders";
 import AdminUsers from "./AdminUsers";
+import AdminDashboardActions from "./AdminDashboardActions";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -58,9 +59,14 @@ export default async function AdminPage() {
     ["printing_completed", "shipped", "delivered"].includes(o.status)
   ).length;
 
-  const totalOrders = orders.filter((o) => o.status !== "cancelled").length;
+  const activeOrders = orders.filter(
+    (o) => o.status !== "cancelled" && o.status !== "archived"
+  );
+  const totalOrders = activeOrders.length;
 
-  const serializedOrders = orders.map((o) => ({
+  const listOrders = orders.filter((o) => o.status !== "archived");
+
+  const serializedOrders = listOrders.map((o) => ({
     id: o.id,
     amount: o.amount,
     currency: o.currency,
@@ -144,12 +150,15 @@ export default async function AdminPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-stone-900">Admin dashboard</h1>
-          <p className="text-sm text-stone-500 mt-1">
-            Orders, payments, technicians and print production for Chola Chela
-            Photo Book Studio.
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-stone-900">Admin dashboard</h1>
+            <p className="text-sm text-stone-500 mt-1">
+              Orders, payments, technicians and print production for Chola Chela
+              Photo Book Studio.
+            </p>
+          </div>
+          <AdminDashboardActions />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">

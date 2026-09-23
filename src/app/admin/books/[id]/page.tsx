@@ -17,7 +17,7 @@ export default async function AdminBookPage({
     select: { role: true, name: true },
   });
 
-  if (!admin || admin.role !== "admin") {
+  if (!admin || (admin.role !== "admin" && admin.role !== "technician")) {
     redirect("/dashboard");
   }
 
@@ -93,6 +93,7 @@ export default async function AdminBookPage({
       photos={Object.values(photoMap)}
       templateLayout={template?.layout || "grid-2x2"}
       adminName={admin.name}
+      viewerRole={admin.role}
     />
   );
 }

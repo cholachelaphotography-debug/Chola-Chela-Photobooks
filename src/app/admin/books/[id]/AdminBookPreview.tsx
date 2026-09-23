@@ -37,6 +37,7 @@ export default function AdminBookPreview({
   photos,
   templateLayout,
   adminName,
+  viewerRole = "admin",
 }: {
   project: {
     id: string;
@@ -66,17 +67,20 @@ export default function AdminBookPreview({
   photos: Photo[];
   templateLayout: string;
   adminName: string;
+  viewerRole?: string;
 }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const [printMode, setPrintMode] = useState(false);
   const pages = project.pages;
   const page = pages[currentPage];
   const isCover = currentPage === 0;
+  const backHref = viewerRole === "technician" ? "/technician" : "/admin";
 
   const getPhoto = (id: string | null) =>
     id ? photos.find((p) => p.id === id) : null;
 
-  function renderLayout() {
-    const slots = page?.slots || [];
+  function renderLayoutForPage(pg: Page | undefined) {
+    const slots = pg?.slots || [];
 
     const Slot = ({
       index,
@@ -92,6 +96,7 @@ export default function AdminBookPreview({
           className={`relative rounded overflow-hidden border border-stone-200 bg-stone-100 ${className}`}
         >
           {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={photo.url}
               alt={photo.originalName || "Photo"}
@@ -110,67 +115,27 @@ export default function AdminBookPreview({
       );
     };
 
-    if (isCover) {
-      return (
-        <div className="w-full h-full flex flex-col">
-          <div
-            className="flex-1 relative"
-            style={{ backgroundColor: project.coverColor || "#1a5f4a" }}
-          >
-            {normalizeSlot(slots[0]).photoId && (
-              <img
-                src={getPhoto(normalizeSlot(slots[0]).photoId)?.url}
-                alt="Cover"
-                className="absolute inset-0 w-full h-full object-cover opacity-90"
-                style={{
-                  transform: `scale(${normalizeSlot(slots[0]).scale}) translate(${normalizeSlot(slots[0]).x}%, ${normalizeSlot(slots[0]).y}%)`,
-                }}
-              />
-            )}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center bg-black/25">
-              <h2 className="text-2xl sm:text-3xl font-bold drop-shadow-lg mb-2">
-                {project.title}
-              </h2>
-              <p className="text-sm opacity-90">Chola Chela Photography</p>
-            </div>
-          </div>
-          <div className="h-20 p-2">
-            <Slot index={0} className="h-full w-full" />
-          </div>
-        </div>
-      );
-    }
-
     switch (templateLayout) {
       case "single":
         return (
-          <div className="w-full h-full p-3">
+          <div className="w-full h-full p-2">
             <Slot index={0} className="w-full h-full" />
           </div>
         );
       case "hero-plus-two":
       case "wedding":
         return (
-          <div className="w-full h-full p-2 grid grid-rows-3 gap-2">
+          <div className="w-full h-full p-1.5 grid grid-rows-3 gap-1.5">
             <Slot index={0} className="row-span-2" />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               <Slot index={1} />
               <Slot index={2} />
             </div>
           </div>
         );
-      case "grid-2x2":
-        return (
-          <div className="w-full h-full p-2 grid grid-cols-2 grid-rows-2 gap-2">
-            <Slot index={0} />
-            <Slot index={1} />
-            <Slot index={2} />
-            <Slot index={3} />
-          </div>
-        );
       case "collage":
         return (
-          <div className="w-full h-full p-2 grid grid-cols-3 grid-rows-2 gap-2">
+          <div className="w-full h-full p-1.5 grid grid-cols-3 grid-rows-2 gap-1.5">
             <Slot index={0} className="col-span-2" />
             <Slot index={1} />
             <Slot index={2} />
@@ -180,7 +145,7 @@ export default function AdminBookPreview({
         );
       case "family":
         return (
-          <div className="w-full h-full p-2 grid grid-cols-3 grid-rows-2 gap-2">
+          <div className="w-full h-full p-1.5 grid grid-cols-3 grid-rows-2 gap-1.5">
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <Slot key={i} index={i} />
             ))}
@@ -188,8 +153,8 @@ export default function AdminBookPreview({
         );
       default:
         return (
-          <div className="w-full h-full p-2 grid grid-cols-2 grid-rows-2 gap-2">
-            {slots.map((_, i) => (
+          <div className="w-full h-full p-1.5 grid grid-cols-2 grid-rows-2 gap-1.5">
+            {[0, 1, 2, 3].map((i) => (
               <Slot key={i} index={i} />
             ))}
           </div>
@@ -197,91 +162,212 @@ export default function AdminBookPreview({
     }
   }
 
-  return (
-    <div className="min-h-screen bg-stone-100 flex flex-col">
-      <header className="bg-white border-b border-stone-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              href="/admin"
-              className="text-sm text-stone-500 hover:text-orange-700 shrink-0"
-            >
-              ← Admin
-            </Link>
-            <div className="min-w-0">
-              <h1 className="font-semibold text-stone-900 truncate">
-                {project.title}
-              </h1>
-              <p className="text-xs text-stone-500">
-                {project.templateName} · {project.customerName} · Read-only
-                preview
-              </p>
-            </div>
+  function handlePrint() {
+    setPrintMode(true);
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => setPrintMode(false), 500);
+    }, 200);
+  }
+
+  function downloadPhotoUrls() {
+    const urls = photos.map((p) => p.url).filter(Boolean);
+    const text = [
+      `Chola Chela Photo Book — ${project.title}`,
+      `Customer: ${project.customerName}`,
+      `Pages: ${project.pageCount}`,
+      project.order
+        ? `Size: ${project.order.bookSize} · ${project.order.coverType} · ${project.order.paperType}`
+        : "",
+      "",
+      "Photo URLs:",
+      ...urls,
+    ].join("\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${project.title.replace(/\s+/g, "-")}-print-assets.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  if (printMode) {
+    return (
+      <div className="bg-white print:bg-white">
+        <style jsx global>{`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .print-root,
+            .print-root * {
+              visibility: visible;
+            }
+            .print-root {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .print-page {
+              page-break-after: always;
+              break-after: page;
+            }
+            .print-page:last-child {
+              page-break-after: auto;
+            }
+          }
+        `}</style>
+        <div className="print-root p-4">
+          <div className="mb-4 text-center text-sm text-stone-600 print:hidden">
+            Preparing print… Use your browser dialog to save as PDF or send to
+            printer.
           </div>
-          <span className="text-xs text-stone-400 hidden sm:inline">
-            {adminName}
-          </span>
+          {pages.map((pg, i) => (
+            <div
+              key={i}
+              className="print-page mx-auto mb-6 border border-stone-200 bg-white"
+              style={{
+                width: "180mm",
+                maxWidth: "100%",
+                aspectRatio: "3/4",
+              }}
+            >
+              <div className="h-full w-full relative">
+                {i === 0 && (
+                  <div
+                    className="absolute inset-0 opacity-20 pointer-events-none"
+                    style={{
+                      backgroundColor: project.coverColor || "#9a3412",
+                    }}
+                  />
+                )}
+                {renderLayoutForPage(pg)}
+                <div className="absolute bottom-1 right-2 text-[10px] text-stone-400">
+                  {project.title} · p.{i + 1}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-100">
+      <div className="bg-orange-800 text-orange-50 text-xs py-1.5 print:hidden">
+        <div className="max-w-6xl mx-auto px-4 flex justify-between gap-2">
+          <span>Chola Chela Photo Book Studio · Print preview</span>
+          <span>{adminName}</span>
+        </div>
+      </div>
+
+      <header className="bg-white border-b border-stone-200 print:hidden">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-semibold text-stone-900">{project.title}</h1>
+            <p className="text-xs text-stone-500">
+              {project.templateName} · {project.pageCount} pages ·{" "}
+              {project.customerName}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="px-4 py-2 rounded-full bg-orange-700 text-white text-sm font-medium hover:bg-orange-800"
+            >
+              Print / Save as PDF
+            </button>
+            <button
+              type="button"
+              onClick={downloadPhotoUrls}
+              className="px-4 py-2 rounded-full border border-stone-300 text-sm font-medium hover:bg-stone-50"
+            >
+              Download photo list
+            </button>
+            <Link
+              href={backHref}
+              className="px-4 py-2 rounded-full border border-stone-300 text-sm font-medium hover:bg-stone-50"
+            >
+              Back
+            </Link>
+          </div>
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Book preview */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-auto">
-          <div className="flex items-center gap-2 mb-3 flex-wrap justify-center">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-              disabled={currentPage === 0}
-              className="px-3 py-1.5 rounded-lg border border-stone-300 text-sm disabled:opacity-40 bg-white"
+      <div className="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-[1fr_280px] gap-6 print:hidden">
+        <div>
+          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4">
+            <div
+              className="mx-auto relative bg-stone-50 border border-stone-200 overflow-hidden"
+              style={{ maxWidth: 420, aspectRatio: "3/4" }}
             >
-              ← Prev
-            </button>
-            <div className="flex gap-1 max-w-[260px] overflow-x-auto py-1">
-              {pages.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i)}
-                  className={`w-7 h-9 rounded border text-[10px] font-medium shrink-0 ${
-                    i === currentPage
-                      ? "border-orange-500 bg-orange-50 text-orange-700"
-                      : "border-stone-300 bg-white text-stone-500"
-                  }`}
-                >
-                  {i === 0 ? "C" : i}
-                </button>
-              ))}
+              {isCover && (
+                <div
+                  className="absolute inset-0 opacity-15 pointer-events-none"
+                  style={{
+                    backgroundColor: project.coverColor || "#9a3412",
+                  }}
+                />
+              )}
+              {renderLayoutForPage(page)}
             </div>
-            <button
-              onClick={() =>
-                setCurrentPage((p) => Math.min(pages.length - 1, p + 1))
-              }
-              disabled={currentPage === pages.length - 1}
-              className="px-3 py-1.5 rounded-lg border border-stone-300 text-sm disabled:opacity-40 bg-white"
-            >
-              Next →
-            </button>
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <button
+                type="button"
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                className="px-3 py-1.5 rounded-full border text-sm disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-stone-600">
+                Page {currentPage + 1} of {pages.length || 1}
+              </span>
+              <button
+                type="button"
+                disabled={currentPage >= pages.length - 1}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(pages.length - 1, p + 1))
+                }
+                className="px-3 py-1.5 rounded-full border text-sm disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
 
-          <div className="bg-white shadow-2xl border border-stone-300 w-full max-w-md aspect-[3/4] overflow-hidden">
-            {renderLayout()}
+          <div className="mt-4 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-sm text-blue-900">
+            <p className="font-medium mb-1">How to print</p>
+            <ol className="list-decimal pl-5 space-y-1 text-blue-900/90">
+              <li>
+                Click <strong>Print / Save as PDF</strong> to open all pages.
+              </li>
+              <li>
+                In the print dialog, choose your photo printer or{" "}
+                <strong>Save as PDF</strong>.
+              </li>
+              <li>
+                Match paper size to the order (e.g. {project.order?.bookSize || "book size"}).
+              </li>
+              <li>
+                Use <strong>Download photo list</strong> if you need original
+                image links for external software.
+              </li>
+            </ol>
           </div>
-
-          <p className="mt-3 text-xs text-stone-500">
-            Page {currentPage + 1} of {pages.length}
-            {isCover ? " (Cover)" : ""}
-          </p>
         </div>
 
-        {/* Order / customer sidebar */}
-        <aside className="w-full lg:w-80 bg-white border-t lg:border-t-0 lg:border-l border-stone-200 p-4 overflow-y-auto shrink-0">
+        <aside className="bg-white rounded-2xl border border-stone-200 p-5 h-fit">
           <h2 className="font-semibold text-stone-800 mb-3">Order details</h2>
-
           <div className="space-y-3 text-sm">
             <div>
               <div className="text-xs text-stone-500">Customer</div>
               <div className="font-medium">{project.customerName}</div>
               <div className="text-stone-500">{project.customerEmail}</div>
             </div>
-
             {project.order ? (
               <>
                 <div>
@@ -295,15 +381,6 @@ export default function AdminBookPreview({
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-stone-500">Amount</div>
-                  <div className="font-semibold">
-                    K{(project.order.amount / 100).toFixed(2)}
-                  </div>
-                  <div className="text-xs capitalize text-stone-500">
-                    {project.order.paymentStatus} · {project.order.status}
-                  </div>
-                </div>
-                <div>
                   <div className="text-xs text-stone-500">Delivery</div>
                   <div>{project.order.shippingName}</div>
                   <div>{project.order.shippingPhone}</div>
@@ -313,25 +390,14 @@ export default function AdminBookPreview({
                 </div>
               </>
             ) : (
-              <p className="text-stone-500 text-sm">
-                No order placed for this book yet.
-              </p>
+              <p className="text-stone-500">No order on this book.</p>
             )}
-
-            <div className="pt-2 border-t border-stone-100">
-              <div className="text-xs text-stone-500">Book status</div>
-              <div className="capitalize">{project.status}</div>
-              {project.autoGenerated && (
-                <div className="text-xs text-orange-600 mt-0.5">Auto-created</div>
-              )}
-            </div>
           </div>
-
           <Link
-            href="/admin"
+            href={backHref}
             className="mt-6 inline-block w-full text-center py-2.5 rounded-xl border border-stone-200 text-sm font-medium hover:bg-stone-50"
           >
-            Back to orders
+            Back to dashboard
           </Link>
         </aside>
       </div>
