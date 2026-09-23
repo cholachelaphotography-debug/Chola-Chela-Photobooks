@@ -15,16 +15,49 @@ export async function POST() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const result = await prisma.order.updateMany({
+  const completed = await prisma.order.findMany({
     where: {
       status: { in: ["printing_completed", "shipped", "delivered"] },
     },
-    data: { status: "archived" },
+    select: { id: true, amount: true, paymentStatus: true },
   });
+
+  if (completed.length === 0) {
+    return NextResponse.json({
+      ok: true,
+      archived: 0,
+      revenueArchived: 0,
+      message: "No completed orders to archive.",
+    });
+  }
+
+  const paidAmount = completed
+    .filter((o) => o.paymentStatus === "paid")
+    .reduce((sum, o) => sum + o.amount, 0);
+
+  const paidCount = completed.filter((o) => o.paymentStatus === "paid").length;
+
+  await prisma.$transaction([
+    prisma.revenueSnapshot.create({
+      data: {
+        amount: paidAmount,
+        orderCount: paidCount,
+        note: `Archived ${completed.length} completed order(s) (${paidCount} paid)`,
+        createdById: session.user.id,
+      },
+    }),
+    prisma.order.updateMany({
+      where: {
+        id: { in: completed.map((o) => o.id) },
+      },
+      data: { status: "archived" },
+    }),
+  ]);
 
   return NextResponse.json({
     ok: true,
-    archived: result.count,
-    message: `Archived ${result.count} completed order(s). Dashboard counters updated.`,
+    archived: completed.length,
+    revenueArchived: paidAmount,
+    message: `Archived ${completed.length} order(s). K${(paidAmount / 100).toFixed(2)} moved to past revenue.`,
   });
 }

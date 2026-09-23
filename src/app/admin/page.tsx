@@ -40,8 +40,16 @@ export default async function AdminPage() {
   });
 
   const paidRevenue = await prisma.order.aggregate({
-    where: { paymentStatus: "paid" },
+    where: {
+      paymentStatus: "paid",
+      status: { not: "archived" },
+    },
     _sum: { amount: true },
+  });
+
+  const pastRevenue = await prisma.revenueSnapshot.aggregate({
+    _sum: { amount: true },
+    _count: true,
   });
 
   const pendingPayment = orders.filter(
@@ -161,7 +169,7 @@ export default async function AdminPage() {
           <AdminDashboardActions />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
           <div className="bg-gradient-to-br from-stone-50 to-white rounded-2xl border border-stone-200 shadow-sm p-4">
             <div className="text-xs font-medium text-stone-600 mb-1">Orders</div>
             <div className="text-xl font-bold text-stone-900">{totalOrders}</div>
@@ -184,12 +192,25 @@ export default async function AdminPage() {
             </div>
             <div className="text-xl font-bold text-green-700">{completed}</div>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-200 shadow-sm p-4 col-span-2 md:col-span-1">
+          <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl border border-orange-200 shadow-sm p-4">
             <div className="text-xs font-medium text-orange-800 mb-1">
               Revenue (paid)
             </div>
             <div className="text-xl font-bold text-stone-900">
               K{((paidRevenue._sum.amount || 0) / 100).toFixed(2)}
+            </div>
+            <div className="text-[10px] text-stone-500 mt-1">Current period</div>
+          </div>
+          <div className="bg-gradient-to-br from-violet-50 to-white rounded-2xl border border-violet-200 shadow-sm p-4">
+            <div className="text-xs font-medium text-violet-800 mb-1">
+              Past revenue
+            </div>
+            <div className="text-xl font-bold text-stone-900">
+              K{((pastRevenue._sum.amount || 0) / 100).toFixed(2)}
+            </div>
+            <div className="text-[10px] text-stone-500 mt-1">
+              {pastRevenue._count || 0} archive record
+              {(pastRevenue._count || 0) === 1 ? "" : "s"}
             </div>
           </div>
         </div>

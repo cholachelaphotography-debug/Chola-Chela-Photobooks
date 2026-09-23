@@ -137,3 +137,12 @@ model Order {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
+
+model RevenueSnapshot {
+  id          String   @id @default(cuid())
+  amount      Int      // total paid amount in ngwee/cents at archive time
+  orderCount  Int
+  note        String?
+  createdAt   DateTime @default(now())
+  createdById String?
+}

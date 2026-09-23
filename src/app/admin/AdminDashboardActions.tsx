@@ -10,7 +10,7 @@ export default function AdminDashboardActions() {
   async function resetCompleted() {
     if (
       !confirm(
-        "Archive all completed orders? They will be removed from dashboard counters and the order list. This keeps history in the database as status “archived”."
+        "Archive all completed orders and move their paid totals into Past revenue? Current Revenue (paid) and Completed counts will reset for those jobs."
       )
     )
       return;
@@ -40,7 +40,7 @@ export default function AdminDashboardActions() {
       disabled={loading}
       className="px-4 py-2 rounded-full border border-stone-300 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 whitespace-nowrap"
     >
-      {loading ? "Working…" : "Reset completed counters"}
+      {loading ? "Working…" : "Reset completed & revenue"}
     </button>
   );
 }
